@@ -123,27 +123,22 @@ maintains such a valuable infrastructure. That’s scaling of a completely
 different color, to mix metaphors.
 
 Examples of social contracts
+=============================
 
 Let’s bring these ideas back to earth, and begin somewhere small by
 making a contract that holds a resource, like a balance, and allows
 clients to get and set the value of the resource. Such Cell-like
 behavior is the “hello world” of the blockchain.
+::
 
-contract Cell( get, set, state ) = {
-
- for( rtn <- get; v <- state ) {
-
- rtn!( v ) \| state!( v ) \| Cell( get, set, state )
-
- } \|
-
- for( newValue <- set; v <- state ) {
-
- state!( newValue ) \| Cell( get, set, state )
-
+ contract Cell( get, set, state ) = {
+  for( rtn <- get; v <- state ) {
+  rtn!( v ) \| state!( v ) \| Cell( get, set, state )
+  } \|
+  for( newValue <- set; v <- state ) {
+  state!( newValue ) \| Cell( get, set, state )
+  }
  }
-
-}
 
 This takes a channel for get requests, a channel for set requests, and a
 state channel where we will hold the resource. In parallel it waits on
@@ -165,22 +160,22 @@ having been stolen by the join). Meanwhile, the Cell behavior is
 recursively invoked.
 
 We can instantiate and run the Cell with a private state channel, called
-current, an initial value, initial by
-
-new current in Cell( get, set, current ) \| current!( initial )
+current, an initial value, initialised by
+::
+ new current in Cell( get, set, current ) \| current!( initial )
 
 and we can wrap that up in a Wallet contract that is parametric in the
 get and set channels and the initial value.
+::
 
-contract Wallet( get, set, initial ) = {
-
- new current in Cell( get, set, current ) \| current!( initial )
-
-}
+ contract Wallet( get, set, initial ) = {
+  new current in Cell( get, set, current ) \| current!( initial )
+ }
 
 Finally, we can instantiate a Wallet.
+::
 
-Wallet( get, set, 1000.00 )
+ Wallet( get, set, 1000.00 )
 
 That’s a simple Wallet contract that can hold a balance (or other kind
 of resource), and allow the balance to be updated.
@@ -192,26 +187,18 @@ however, there is still a thread waiting to service a set request, and
 another such thread will be launched on the recursive call to Cell. A
 large imbalance of get (resp. set) requests and this implementation will
 run out of memory. A safer implementation would use the select construct
+::
 
-contract Cell( get, set, state ) = {
-
- select {
-
- case rtn <- get; v <- state => {
-
- rtn!( \*v ) \| state!( \*v ) \| Cell( get, set, state )
-
+ contract Cell( get, set, state ) = {
+  select {
+   case rtn <- get; v <- state => {
+    rtn!( \*v ) \| state!( \*v ) \| Cell( get, set, state )
+   }
+   case newValue <- set; v <- state => {
+    state!( \*newValue ) \| Cell( get, set, state )
+   }
+  }
  }
-
- case newValue <- set; v <- state => {
-
- state!( \*newValue ) \| Cell( get, set, state )
-
- }
-
- }
-
-}
 
 This implementation may be substituted into the Wallet contract without
 any perturbation to that code context. However, when it is run only one
@@ -225,79 +212,52 @@ For programmers who prefer a more object-oriented style with rich
 message structure, there is yet a third option that uses only one client
 request channel, and dispatches on the type of the message received on
 the channel.
+::
 
-contract Cell( client, state ) = {
-
- for( request <- client; v <- state ) {
-
-match request {
-
- get{ rtn } => {
-
- rtn!( v ) \| state!( v ) \| Cell( client, state )
-
+ contract Cell( client, state ) = {
+  for( request <- client; v <- state ) {
+   match request {
+    get{ rtn } => {
+     rtn!( v ) \| state!( v ) \| Cell( client, state )
+    }
+    set{ newValue } => {
+     state!( newValue ) \| Cell( client, state )
+    }
+   }
+  }
  }
-
- set{ newValue } => {
-
- state!( newValue ) \| Cell( client, state )
-
- }
-
- }
-
- }
-
-}
 
 This implementation would require a change to the Wallet contract.
 Either the Wallet contract has to turn requests on the get and set
 channels into messages
+::
 
-contract Adapter( get, set, client ) = {
-
- select {
-
-case rtn <- get => {
-
- client!( get{ rtn } ) \|
-
- Adapter( get, set, client )
-
-};
-
-case newValue <- set => {
-
- client!( set{ newValue } ) \|
-
- Adapter( get, set, client )
-
-}
-
+ contract Adapter( get, set, client ) = {
+  select {
+   case rtn <- get => {
+    client!( get{ rtn } ) \|
+    Adapter( get, set, client )
+   };
+   case newValue <- set => {
+    client!( set{ newValue } ) \|
+    Adapter( get, set, client )
+   }
+  }
  }
-
-}
-
-contract Wallet( get, set, initial ) = {
-
- new client, current in
-
-Adapter( get, set, client ) \|
-
-current!( initial ) \|
-
-Cell( client, current )
-
-}
+ contract Wallet( get, set, initial ) = {
+  new client, current in
+   Adapter( get, set, client ) \|
+   current!( initial ) \|
+   Cell( client, current )
+ }
 
 or it has to pass along to clients the change in the contractual
 interface.
+::
 
-contract Wallet( client, initial ) = {
-
- new current in Cell( client, current ) \| current!( initial )
-
-}
+ contract Wallet( client, initial ) = {
+  new current in Cell( client, current ) \| current!( initial )
+ }
 
 Even with this basic example we can see many of the salient features of
 the language. Concurrent execution, asynchronous message-passing, and
@@ -305,6 +265,7 @@ pattern matching are woven together into a simple, easy-to-understand
 language.
 
 How social contracts differ from Ethereum’s smart contracts
+==============================================================
 
 To begin with, Ethereum’s contracts are internally sequential. In fact,
 the entire call-chain stemming from a point of entry at a single
