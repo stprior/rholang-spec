@@ -6,15 +6,13 @@ Contracts, Composition, and Scaling
 The Rholang 0.1 specification
 ************************************
 
-3 Aug 2016
+:Authors: Lucius Gregory Meredith, Jack Pettersson, Gary Stephenson
+:Date: 3 Aug 2016
+:Organization: RChain Cooperative
+:Copyright: This document is licensed under a `Creative Commons Attribution 4.0 International (CC BY 4.0) License`_
 
-Lucius Gregory Meredith
 
-Jack Pettersson
-
-Gary Stephenson
-
-Intended audience: Developers using the RChain Platform; developers
+**Intended audience:** Developers using the RChain Platform; developers
 creating or maintaining the RChain Platform; language designers;
 concurrency theorists; blockchain and cryptocurrency enthusiasts
 
