@@ -70,43 +70,43 @@ continuation and the data are ephemeral. That is, the channel is used
 exactly once by the consumer, and the data is removed from the channel
 once it’s read:
 
- **for(v <- channel) P** \| *channel!(v)*
+**for(v <- channel) P** \| *channel!(v)*
 
 Data persistent, continuation ephemeral
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+=========================================
 
 This means that the channel is used as a memory location, i.e. the value
 will remain in the channel after it has been read. Traditionally, this
 is decided by the producer of the data, by sending it using two
 exclamation marks instead of one, like so:
 
- **for(v <- channel) P** \| *channel!!(v)*
+**for(v <- channel) P** \| *channel!!(v)*
 
 The expression above is sugar for
 
- **for(v <- channel) P** \| *$(channel!(v))*
+**for(v <- channel) P** \| *$(channel!(v))*
 
 However, sometimes it is useful for the consumer to only peek at the
 value in a channel, even if the producer didn’t specify that it should
 persist. This is achieved by using the assignment operator :=, as here:
 
- **for(v := channel) P** \| *channel!(v)*
+**for(v := channel) P** \| *channel!(v)*
 
 This is interpreted as the consumer simply removing the value and then
 resending it, i.e. it is syntactic sugar for:
 
- **for(v <- channel) (channel!(v) \| P)** \| *channel!(v)*
+**for(v <- channel) (channel!(v) \| P)** \| *channel!(v)*
 
 Of course, these two can be combined. Both the producer and the consumer
 could want to make sure that the value will stay in the channel, which
 they express by:
 
- **for(v := channel) P** \| *channel!!(v)*
+**for(v := channel) P** \| *channel!!(v)*
 
 Desugaring this using the rules given in the previous two examples, we
 see that this is sugar for:
 
- **for(v <- channel) (channel!(v) \| *P)** \| *$(channel!(v))*
+**for(v <- channel) (channel!(v) \| *P)** \| *$(channel!(v))*
 
 Data ephemeral, continuation persistent
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
