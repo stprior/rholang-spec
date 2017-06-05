@@ -80,29 +80,24 @@ Now, let us imagine we have a function, written [\| e \|](k), which
 translates an arithmetic expression e into a process that will evaluate
 e and pass the result along the channel k. Then, the expression that
 evaluates e and passes it to the awaiting continuation P is just
-::
 
  for(result <- k)P \| [\| e \|](k)
 
 If we adopt the convention that [\| e \|] denotes the value of e, then
 the expression above becomes
-::
 
  for(result <- k)P \| k!([\| e \|])
 
 Thus, if e is m+n, we have
-::
 
  for(result <- k)P \| k!([\| m+n \|])
 
 Now we can recurse, compositionally evaluating m, n and +.
-::
 
-for(result <- k)P
-   | k!(new kp in kp!([\| m \|]) \| kp!([\| n \|]) \| [\| + \|](kp))
+ for(result <- k)P
+ \| k!(new kp in kp!([\| m \|]) \| kp!([\| n \|]) \| [\| + \|](kp))
 
 Now, suppose
-
 
 [\| + \|](kp)= for(m <- kp; n <- kp){ *m+n* }
 
@@ -145,7 +140,7 @@ Now, equipped with the process *m+n*, the resulting expression looks
 like
 
  for(result <- k)P
-   | k!(new kp in kp!([\| m \|]) \| kp!([\| n \|]) \| for(m <- kp; n <- kp)(\ *m+n*))
+ \| k!(new kp in kp!([\| m \|]) \| kp!([\| n \|]) \| for(m <- kp; n <- kp)(\ *m+n*))
 
 which then evaluates to
 
