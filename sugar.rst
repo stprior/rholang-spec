@@ -73,7 +73,7 @@ once it’s read:
  **for(v <- channel) P** \| *channel!(v)*
 
 Data persistent, continuation ephemeral
-=========================================
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This means that the channel is used as a memory location, i.e. the value
 will remain in the channel after it has been read. Traditionally, this
@@ -155,8 +155,8 @@ one-off channel, as here:
 ::
 
  for(v << state; t <- channel; if cond(v,t)) P
-   \| state!(v)
-   \| channel!(t)
+   | state!(v)
+   | channel!(t)
 
 There are two natural interpretations that immediately spring to mind.
 One is that the one-off channel effectively turns the stream into a
@@ -164,8 +164,8 @@ one-off, i.e. it would be semantically equivalent to
 ::
 
  for(v <- state; t <- channel; if cond(v,t)) P
-  \| state!(v)
-  \| channel!(t)
+  | state!(v)
+  | channel!(t)
 
 The other interpretation is that the stream effectively turns the
 one-off channel into a stream, by replicating the first value that
@@ -174,8 +174,8 @@ semantically equivalent to
 ::
 
  for(v << state; t := channel; if cond(v,t)) P
-  \| state!(v)
-  \| channel!(t)
+  | state!(v)
+  | channel!(t)
 
 It is interesting to note that under this interpretation, the latter
 interpretation would very easily give rise to the following race
@@ -183,9 +183,9 @@ condition:
 ::
 
  for(v << state; t << channel; if cond(v,t)) P
-  \| state!(v)
-  \| channel!(t)
-  \| channel!(t’)
+  | state!(v)
+  | channel!(t)
+  | channel!(t’)
 
 Here, one of t and t’ will be duplicated, because of the interpretation
 of := as reproduction, as it was given above. This gives slight to the
@@ -194,9 +194,9 @@ possible to write the race manually:
 ::
 
  for(v << state; t := channel) P
-  \| state!(v)
-  \| channel!(t)
-  \| channel!(t’)
+  | state!(v)
+  | channel!(t)
+  | channel!(t’)
 
 In this case, either the programmer knows what she is doing, or it will
 be caught by a type judgment.
