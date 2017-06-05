@@ -158,7 +158,7 @@ result, namely *m+n*. To see this let’s consider the simplest possible
 example. Suppose that P = \*result. Then we will get
 ::
 
-  \*result{ @(new kp in kp!([\| m \|]) \| kp!([\| n \|]) \| for(m <- kp; n <- kp)(\ *m+n*))/result}
+  *result{ @(new kp in kp!([\| m \|]) \| kp!([\| n \|]) \| for(m <- kp; n <- kp)(\ *m+n*))/result}
  =
   new kp in kp!([\| m \|]) \| kp!([\| n \|]) \| for(m <- kp; n <- kp)(\ *m+n*)
  ->
@@ -291,7 +291,6 @@ Name equivalence
 ^^^^^^^^^^^^^^^^^^
 
 Name equivalence is the smallest equivalence on names such that
-::
 
 P =\ :sub:`S` Q => @P =\ :sub:`N` @Q
 
@@ -309,7 +308,6 @@ substitution of the form { @Q/u } is applied and x =\ :sub:`N` u.
 
 Reduction relation
 ^^^^^^^^^^^^^^^^^^^
-::
 
  comm: xi =\ :sub:`N` xi’ => R + for( x1 <- y1; … ; xN <- yN )P + S \|
  x1’!( Q1 ) \| … \| xN’!( QN ) -> P{ @Q1/y1, … , @QN/yN }
