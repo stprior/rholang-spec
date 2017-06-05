@@ -62,7 +62,7 @@ Modularity makes it possible to have a unified substrate with high level
 feature differentiation amongst many implementations of the language.
 
 An example from arithmetic
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+============================
 
 Lest this seem terribly abstract, let us consider a simple example, such
 as addition. Just as with modern functional languages, we recognize that
@@ -72,6 +72,7 @@ result of this expression, whether it is the REPL prompt or the storage
 of the result in a variable. Once we understand that there is some
 waiting continuation, say P, we can model the passage of the result to
 the continuation as
+::
 
  for(result <- k)P
 
@@ -79,21 +80,25 @@ Now, let us imagine we have a function, written [\| e \|](k), which
 translates an arithmetic expression e into a process that will evaluate
 e and pass the result along the channel k. Then, the expression that
 evaluates e and passes it to the awaiting continuation P is just
+::
 
  for(result <- k)P \| [\| e \|](k)
 
 If we adopt the convention that [\| e \|] denotes the value of e, then
 the expression above becomes
+::
 
  for(result <- k)P \| k!([\| e \|])
 
 Thus, if e is m+n, we have
+::
 
  for(result <- k)P \| k!([\| m+n \|])
 
 Now we can recurse, compositionally evaluating m, n and +.
 ::
- for(result <- k)P
+
+for(result <- k)P
    | k!(new kp in kp!([\| m \|]) \| kp!([\| n \|]) \| [\| + \|](kp))
 
 Now, suppose
@@ -161,7 +166,6 @@ example. Suppose that P = \*result. Then we will get
 
 Since kp is never mentioned in *m+n*, it may be garbage collected,
 resulting in
-::
 
  *m+n*
 
@@ -247,6 +251,7 @@ What follows is a minimal specification of the reflective higher-order
 Syntax
 ^^^^^^^
 ::
+
  M,N ::= 0          // nil or stopped process
     |   for( x1 <- y1; … ; xN <- yN )P          // input guarded agent
     | x!( P ) // output
@@ -314,7 +319,7 @@ Reduction relation
  struct: P = P', P' -> Q', Q' = Q => P -> Q
 
 Guidance for implementations
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+==============================
 
 Ignoring the nuances around the structure of names, here is a perfectly
 reasonable rendering of the core concurrency semantics into Scala code.
