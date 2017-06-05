@@ -62,6 +62,7 @@ Modularity makes it possible to have a unified substrate with high level
 feature differentiation amongst many implementations of the language.
 
 An example from arithmetic
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Lest this seem terribly abstract, let us consider a simple example, such
 as addition. Just as with modern functional languages, we recognize that
@@ -79,24 +80,24 @@ translates an arithmetic expression e into a process that will evaluate
 e and pass the result along the channel k. Then, the expression that
 evaluates e and passes it to the awaiting continuation P is just
 
-for(result <- k)P \| [\| e \|](k)
+ for(result <- k)P \| [\| e \|](k)
 
 If we adopt the convention that [\| e \|] denotes the value of e, then
 the expression above becomes
 
-for(result <- k)P \| k!([\| e \|])
+ for(result <- k)P \| k!([\| e \|])
 
 Thus, if e is m+n, we have
 
-for(result <- k)P \| k!([\| m+n \|])
+ for(result <- k)P \| k!([\| m+n \|])
 
 Now we can recurse, compositionally evaluating m, n and +.
-
-for(result <- k)P
-
-\| k!(new kp in kp!([\| m \|]) \| kp!([\| n \|]) \| [\| + \|](kp))
+::
+ for(result <- k)P
+   | k!(new kp in kp!([\| m \|]) \| kp!([\| n \|]) \| [\| + \|](kp))
 
 Now, suppose
+::
 
 [\| + \|](kp)= for(m <- kp; n <- kp){ *m+n* }
 
@@ -137,37 +138,32 @@ improvements in our compilation strategies.
 
 Now, equipped with the process *m+n*, the resulting expression looks
 like
+::
 
-for(result <- k)P
-
-\| k!(new kp in kp!([\| m \|]) \| kp!([\| n \|]) \| for(m <- kp; n <-
-kp)(\ *m+n*))
+ for(result <- k)P
+   | k!(new kp in kp!([\| m \|]) \| kp!([\| n \|]) \| for(m <- kp; n <- kp)(\ *m+n*))
 
 which then evaluates to
+::
 
-P{@(new kp in kp!([\| m \|]) \| kp!([\| n \|]) \| for(m <- kp; n <-
-kp)(\ *m+n*))/result}
+ P{@(new kp in kp!([\| m \|]) \| kp!([\| n \|]) \| for(m <- kp; n <- kp)(\ *m+n*))/result}
 
 Any usage context in P of the form \*result will deliver the desired
 result, namely *m+n*. To see this let’s consider the simplest possible
 example. Suppose that P = \*result. Then we will get
+::
 
-\*result{ @(new kp in kp!([\| m \|]) \| kp!([\| n \|]) \| for(m <- kp; n
-<- kp)(\ *m+n*))/result}
-
-=
-
-new kp in kp!([\| m \|]) \| kp!([\| n \|]) \| for(m <- kp; n <-
-kp)(\ *m+n*)
-
-->
-
-new kp in *m+n*
+  \*result{ @(new kp in kp!([\| m \|]) \| kp!([\| n \|]) \| for(m <- kp; n <- kp)(\ *m+n*))/result}
+ =
+  new kp in kp!([\| m \|]) \| kp!([\| n \|]) \| for(m <- kp; n <- kp)(\ *m+n*)
+ ->
+  new kp in *m+n*
 
 Since kp is never mentioned in *m+n*, it may be garbage collected,
 resulting in
+::
 
-*m+n*
+ *m+n*
 
 There are a few points worth calling out in this implementation. First,
 this implementation resembles nothing so much as a register machine
@@ -207,6 +203,7 @@ code. Thus, it is arguably less susceptible to the kind of lazy
 evaluation brittleness found in Haskell.
 
 Modularity, efficient implementation, and scalable verification
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 In this connection, it is important to understand that this example is
 primarily to show how easy it is to model and integrate primitives,
@@ -242,49 +239,38 @@ Semantics
 ===========
 
 A specification of the rho-calculus with summation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 What follows is a minimal specification of the reflective higher-order
 π-calculus (aka rho-calculus) with summation.
 
 Syntax
+^^^^^^^
+::
+ M,N ::= 0          // nil or stopped process
+    |   for( x1 <- y1; … ; xN <- yN )P          // input guarded agent
+    | x!( P ) // output
+    |   M+N       // summation or choice
+ 
+ P,Q  ::= M          // "normal" process
+   |   \*x          // dereferenced or unquoted name
+   |    P\|Q        // parallel composition
 
-M,N ::= 0          // nil or stopped process
-
-       \|   for( x1 <- y1; … ; xN <- yN )P          // input guarded
-agent
-
- \| x!( P ) // output
-
-       \|   M+N       // summation or choice
-
-P,Q  ::= M          // "normal" process
-
- \|   \*x          // dereferenced or unquoted name
-
-       \|    P\|Q        // parallel composition
-
-x,y ::= @P          // name or quoted process
+ x,y ::= @P          // name or quoted process
 
 Free and bound names
+::
 
-FN( 0 ) = {}
-
-FN( \*x ) = { x }
-
-FN( for( x1 <- y1; … ; xN <- yN )P )
-
-= { x1, … , xN } U FN( P ) \\ { y1, … , yN }
-
-FN( x!( P ) ) = { x } U FN( P )
-
-FN( M+N ) = FN( M ) U FN( N )
-
-FN( P\|Q ) = FN( P ) U FN( Q )
-
-Write the reduction rules. This spec isn’t useful yet because it doesn’t
-specify how to
+ FN( 0 ) = {}
+ FN( \*x ) = { x } 
+ FN( for( x1 <- y1; … ; xN <- yN )P )
+  = { x1, … , xN } U FN( P ) \\ { y1, … , yN }
+ FN( x!( P ) ) = { x } U FN( P )
+ FN( M+N ) = FN( M ) U FN( N )
+ FN( P\|Q ) = FN( P ) U FN( Q )
 
 Structural equivalence
+^^^^^^^^^^^^^^^^^^^^^^^
 
 Structural equivalence is the smallest congruence, =\ :sub:`S`, such
 that
@@ -297,8 +283,10 @@ that
    the alpha-equivalence using =\ :sub:`N`
 
 Name equivalence
+^^^^^^^^^^^^^^^^^^
 
 Name equivalence is the smallest equivalence on names such that
+::
 
 P =\ :sub:`S` Q => @P =\ :sub:`N` @Q
 
@@ -315,15 +303,18 @@ for a detailed account. Terms of the form \*x are taken to Q when a
 substitution of the form { @Q/u } is applied and x =\ :sub:`N` u.
 
 Reduction relation
+^^^^^^^^^^^^^^^^^^^
+::
 
-comm: xi =\ :sub:`N` xi’ => R + for( x1 <- y1; … ; xN <- yN )P + S \|
-x1’!( Q1 ) \| … \| xN’!( QN ) -> P{ @Q1/y1, … , @QN/yN }
+ comm: xi =\ :sub:`N` xi’ => R + for( x1 <- y1; … ; xN <- yN )P + S \|
+ x1’!( Q1 ) \| … \| xN’!( QN ) -> P{ @Q1/y1, … , @QN/yN }
 
-par: P -> P' => P\|Q -> P'\|Q
+ par: P -> P' => P\|Q -> P'\|Q
 
-struct: P = P', P' -> Q', Q' = Q => P -> Q
+ struct: P = P', P' -> Q', Q' = Q => P -> Q
 
 Guidance for implementations
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Ignoring the nuances around the structure of names, here is a perfectly
 reasonable rendering of the core concurrency semantics into Scala code.
