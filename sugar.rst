@@ -60,7 +60,7 @@ data streams and memory locations. This section describes the different
 combinations and explains how they are desugared to the default
 behavior. In the interest of clarity, we consider all pairs of the form:
 
-**data consumer** \| *data producer*
+ **data consumer** \| *data producer*
 
 Data ephemeral, continuation ephemeral
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -70,7 +70,7 @@ continuation and the data are ephemeral. That is, the channel is used
 exactly once by the consumer, and the data is removed from the channel
 once it’s read:
 
-**for(v <- channel) P** \| *channel!(v)*
+ **for(v <- channel) P** \| *channel!(v)*
 
 Data persistent, continuation ephemeral
 =========================================
@@ -80,33 +80,33 @@ will remain in the channel after it has been read. Traditionally, this
 is decided by the producer of the data, by sending it using two
 exclamation marks instead of one, like so:
 
-**for(v <- channel) P** \| *channel!!(v)*
+ **for(v <- channel) P** \| *channel!!(v)*
 
 The expression above is sugar for
 
-**for(v <- channel) P** \| *$(channel!(v))*
+ **for(v <- channel) P** \| *$(channel!(v))*
 
 However, sometimes it is useful for the consumer to only peek at the
 value in a channel, even if the producer didn’t specify that it should
 persist. This is achieved by using the assignment operator :=, as here:
 
-**for(v := channel) P** \| *channel!(v)*
+ **for(v := channel) P** \| *channel!(v)*
 
 This is interpreted as the consumer simply removing the value and then
 resending it, i.e. it is syntactic sugar for:
 
-**for(v <- channel) (channel!(v) \| P)** \| *channel!(v)*
+ **for(v <- channel) (channel!(v) \| P)** \| *channel!(v)*
 
 Of course, these two can be combined. Both the producer and the consumer
 could want to make sure that the value will stay in the channel, which
 they express by:
 
-**for(v := channel) P** \| *channel!!(v)*
+ **for(v := channel) P** \| *channel!!(v)*
 
 Desugaring this using the rules given in the previous two examples, we
 see that this is sugar for:
 
-**for(v <- channel) (channel!(v) \| *P)** \| *$(channel!(v))*
+ **for(v <- channel) (channel!(v) \| *P)** \| *$(channel!(v))*
 
 Data ephemeral, continuation persistent
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -116,11 +116,11 @@ execute the same continuation for every message that is received. In
 other words, the continuation should persist. We signify this using the
 stream operator <<, as shown below:
 
-**for(v << channel) P** \| *channel!(v)*
+ **for(v << channel) P** \| *channel!(v)*
 
 Again writing $P for replication, this is sugar for:
 
-**$(for(v <- channel) P)** \| *channel!(v)*
+ **$(for(v <- channel) P)** \| *channel!(v)*
 
 Data persistent, continuation persistent
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -128,14 +128,14 @@ Data persistent, continuation persistent
 Finally, we come to the case where both the data and the continuation
 should persist, i.e.:
 
-**for(v << channel) P** \| *channel!!(v)*
+ **for(v << channel) P** \| *channel!!(v)*
 
 There are two natural interpretations of this expression. One is that it
 corresponds to an infinite loop and should be caught by the compiler. To
 see this interpretation more clearly, we simply desugar using the rules
 given above, and get:
 
-**$(for(v <- channel) P)** \| *$(channel!(v))*
+ **$(for(v <- channel) P)** \| *$(channel!(v))*
 
 That is, the same value should be sent over the channel infinitely many
 times, and it should be read and passed to the continuation infinitely
@@ -145,7 +145,7 @@ The other interpretation is that this corresponds to a data stream with
 persistent history. This seems like a more useful interpretation to us.
 One possible desugaring would be
 
-**$(for(v <- channel) { P \| h(channel)!(v) })** \| *channel!(v))*
+ **$(for(v <- channel) { P \| h(channel)!(v) })** \| *channel!(v))*
 
 Combining persistence choices
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
