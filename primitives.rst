@@ -102,7 +102,7 @@ for(result <- k)P
    | k!(new kp in kp!([\| m \|]) \| kp!([\| n \|]) \| [\| + \|](kp))
 
 Now, suppose
-::
+
 
 [\| + \|](kp)= for(m <- kp; n <- kp){ *m+n* }
 
@@ -143,20 +143,17 @@ improvements in our compilation strategies.
 
 Now, equipped with the process *m+n*, the resulting expression looks
 like
-::
 
  for(result <- k)P
    | k!(new kp in kp!([\| m \|]) \| kp!([\| n \|]) \| for(m <- kp; n <- kp)(\ *m+n*))
 
 which then evaluates to
-::
 
  P{@(new kp in kp!([\| m \|]) \| kp!([\| n \|]) \| for(m <- kp; n <- kp)(\ *m+n*))/result}
 
 Any usage context in P of the form \*result will deliver the desired
 result, namely *m+n*. To see this let’s consider the simplest possible
 example. Suppose that P = \*result. Then we will get
-::
 
   *result{ @(new kp in kp!([\| m \|]) \| kp!([\| n \|]) \| for(m <- kp; n <- kp)(\ *m+n*))/result}
  =
